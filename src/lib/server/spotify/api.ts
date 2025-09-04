@@ -1,19 +1,9 @@
 import type { Cookies } from '@sveltejs/kit';
 import { spotifyFetch } from './core';
 
-export async function getLikedTracks(locals: App.Locals, cookies: Cookies, market = "HU", limit = 20, offset = 0) {
-    let params = {
-        market,
-        limit: Math.max(1, Math.min(limit, 50)),
-        offset
-    };
+export async function getUserProfile(locals: App.Locals, cookies: Cookies) {
+    const res = await spotifyFetch("/me", locals, cookies);
+    const userProfile = (await res.json()) as SpotifyUserProfile;
 
-    const res = await spotifyFetch("/me/tracks", locals, cookies, { params });
-    const data = await res.json();
-
-    const { items, next, previous, offset: currentOffset, limit: currentLimit, total } = data;
-
-    return {
-
-    }
+    return userProfile;
 }

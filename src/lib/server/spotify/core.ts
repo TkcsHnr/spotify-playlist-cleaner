@@ -2,18 +2,6 @@ import type { Cookies } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } from '$env/static/private';
 
-interface SpotifyFetchOptions extends RequestInit {
-    params?: Record<string, string | number | boolean | undefined>;
-}
-
-interface SpotifyTokenResponse {
-    access_token: string;
-    token_type: string;
-    scope: string;
-    expires_in: number;
-    refresh_token?: string;
-}
-
 export async function spotifyFetch(
     endpoint: string,
     locals: App.Locals,
