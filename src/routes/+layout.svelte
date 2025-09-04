@@ -9,7 +9,7 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="navbar bg-base-200 shadow-sm h-fit">
+<div class="navbar bg-base-200 shadow-sm h-fit border-b border-base-content/10">
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl" href="/">playlist-cleaner</a>
 	</div>
@@ -26,7 +26,7 @@
 				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div
 					tabindex="0"
-					class="dropdown-content mt-2 bg-base-300 rounded-box border border-base-content/10"
+					class="dropdown-content mt-2 bg-base-200 rounded-b-box border border-base-content/10"
 				>
 					<ul class="menu min-w-36">
 						<li class="menu-title">{data.userProfile?.display_name}</li>
