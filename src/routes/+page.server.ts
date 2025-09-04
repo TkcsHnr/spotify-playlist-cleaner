@@ -1,7 +1,18 @@
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+import { getLikedTracks } from '$lib/server/spotify'
 
-export const load: PageServerLoad = async ({ locals, cookies }) => {
-    if (!locals.access_token) return { loggedIn: false };
+export const load = (async ({ locals, cookies }) => {
+    let access_token = locals.access_token;
 
-    return { loggedIn: true }
+    if (access_token === undefined) return {};
+
+    getLikedTracks(locals, cookies);
+
+    return {}
+}) satisfies PageServerLoad;
+
+export const actions: Actions = {
+    default: async () => {
+
+    }
 };
