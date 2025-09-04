@@ -4,9 +4,11 @@ import { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI } from '
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
     const cookieState = cookies.get('state');
+    cookies.delete('state', { path: "/" });
 
     const state = url.searchParams.get("state");
     if (state === null || cookieState === undefined || state !== cookieState) {
+        cookies.delete('state', { path: "/" });
         throw error(400, 'Invalid state: possible CSRF attack');
     }
 
@@ -27,7 +29,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     });
 
     const authHeader = 'Basic ' + Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
-    
+
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
