@@ -61,9 +61,52 @@
 			player.addListener('ready', ({ device_id }: { device_id: string }) => {
 				console.log('Ready with Device ID', device_id);
 				deviceId = device_id;
+
+				const ctx = new AudioContext();
+				if (ctx.state === 'suspended') ctx.resume();
 			});
 		};
 	});
+
+	function waitForReady(): Promise<string> {
+		return new Promise((resolve, reject) => {
+			if (!player) return reject('Player not initialized');
+
+			const readyHandler = ({ device_id }: { device_id: string }) => {
+				const ctx = new AudioContext();
+				if (ctx.state === 'suspended') ctx.resume();
+
+				resolve(device_id);
+			};
+
+			const errorHandler = ({ message }: { message: string }) => {
+				reject(message);
+			};
+
+			player.addListener('ready', readyHandler);
+			player.addListener('initialization_error', errorHandler);
+			player.addListener('authentication_error', errorHandler);
+			player.addListener('account_error', errorHandler);
+		});
+	}
+
+	async function initAndPlay() {
+		if (!player) return;
+
+		const connected = await player.connect();
+		if (!connected) return;
+
+		try {
+			deviceId = await waitForReady();
+
+			await spotifyApi.transferPlayback(deviceId);
+			await spotifyApi.setVolume(100, deviceId);
+			await playNext();
+		} catch (error) {
+			console.error('Error initializing player:', error);
+		}
+	}
+
 	let trackCard = $state<TrackCard | undefined>();
 
 	const randomTracks: Track[] = shuffle(data.likedTracks || []);
@@ -74,7 +117,7 @@
 		try {
 			await spotifyApi.playTrack(deviceId, currentTrack.id);
 		} catch (error) {
-			playNext();
+			await playNext();
 			return;
 		}
 
@@ -87,29 +130,16 @@
 		await spotifyApi.removeTrack(currentTrack.id);
 		playNext();
 	}
-
-	function connectPlayer() {
-		if (player === null) return;
-		player.connect();
-	}
-
-	async function startPlayer() {
-		if (deviceId === '') return;
-		await spotifyApi.transferPlayback(deviceId);
-		await spotifyApi.setVolume(100, deviceId);
-		await playNext();
-	}
 </script>
 
 {#if data.userProfile}
 	<TrackCard track={currentTrack} bind:this={trackCard} />
 	<div class="flex gap-4 flex-wrap justify-center">
 		{#if deviceId === ''}
-			<button class="btn btn-lg btn-info" onclick={connectPlayer}>Connnect</button>
-		{:else if currentTrack === undefined}
-			<button class="btn btn-lg btn-info" onclick={startPlayer}>Start</button>
+			<button class="btn btn-lg btn-info" onclick={initAndPlay}>Start</button>
+		{:else}
+			<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
+			<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
 		{/if}
-		<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
-		<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
 	</div>
 {/if}
