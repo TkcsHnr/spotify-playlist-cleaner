@@ -1,5 +1,4 @@
 <script lang="ts">
-	import SpotifyWebPlayer from '$lib/SpotifyWebPlayer.svelte';
 	import { getCookie } from '$lib/utils';
 	import { createSpotifyApi } from '$lib/spotify/api';
 	import TrackCard from '$lib/TrackCard.svelte';
@@ -25,22 +24,61 @@
 			return res.text();
 		}
 	});
-	let webPlayer = $state<SpotifyWebPlayer | undefined>();
+	// @ts-expect-error
+	let player: Spotify.Player | null = null;
+	let deviceId = $state('');
+	onMount(() => {
+		if (getCookie('access_token') === undefined) return;
+		const script = document.createElement('script');
+		script.src = 'https://sdk.scdn.co/spotify-player.js';
+		script.async = true;
+		document.body.appendChild(script);
+
+		(window as any).onSpotifyWebPlaybackSDKReady = () => {
+			// @ts-expect-error
+			player = new Spotify.Player({
+				name: 'Spotify Web Playback SDK Playlist Cleaner',
+				getOAuthToken: (cb: (token: string) => void) => cb(getCookie('access_token') || ''),
+				volume: 0.5
+			});
+
+			player.addListener('initialization_error', ({ message }: { message: string }) =>
+				console.error('Initialization error:', message)
+			);
+			player.addListener('authentication_error', ({ message }: { message: string }) =>
+				console.error('Authentication error:', message)
+			);
+			player.addListener('account_error', ({ message }: { message: string }) =>
+				console.error('Account error:', message)
+			);
+			player.addListener('playback_error', ({ message }: { message: string }) =>
+				console.error('Playback error:', message)
+			);
+			player.addListener('autoplay_failed', () => {
+				console.log('Autoplay is not allowed by the browser autoplay rules');
+			});
+
+			player.addListener('ready', ({ device_id }: { device_id: string }) => {
+				console.log('Ready with Device ID', device_id);
+				deviceId = device_id;
+			});
+		};
+	});
 	let trackCard = $state<TrackCard | undefined>();
 
 	const randomTracks: Track[] = shuffle(data.likedTracks || []);
 	let currentTrack = $state<Track | undefined>();
 	async function playNext() {
 		currentTrack = randomTracks.shift();
-		if (webPlayer === undefined || currentTrack === undefined) return;
+		if (deviceId === '' || currentTrack === undefined) return;
 		try {
-			await spotifyApi.playTrack(webPlayer.getDeviceId(), currentTrack.id);
+			await spotifyApi.playTrack(deviceId, currentTrack.id);
 		} catch (error) {
 			playNext();
 			return;
 		}
 
-		await spotifyApi.setRepeatMode('track', webPlayer.getDeviceId());
+		await spotifyApi.setRepeatMode('track', deviceId);
 		trackCard?.restartTimer();
 	}
 
@@ -50,22 +88,27 @@
 		playNext();
 	}
 
+	function connectPlayer() {
+		if (player === null) return;
+		player.connect();
+	}
+
 	async function startPlayer() {
-		if (webPlayer === undefined) {
-			console.log('WebPlayer is undefined, cannot start playback');
-			return;
-		}
-		await spotifyApi.transferPlayback(webPlayer.getDeviceId());
-		await spotifyApi.setVolume(100, webPlayer.getDeviceId());
+		if (deviceId === '') return;
+		await spotifyApi.transferPlayback(deviceId);
+		await spotifyApi.setVolume(100, deviceId);
 		await playNext();
 	}
 </script>
 
 {#if data.userProfile}
-	<SpotifyWebPlayer bind:this={webPlayer} onready={() => {}} />
 	<TrackCard track={currentTrack} bind:this={trackCard} />
-	<div class="flex gap-4">
-		<button class="btn btn-lg btn-info" onclick={startPlayer}>Start</button>
+	<div class="flex gap-4 flex-wrap justify-center">
+		{#if deviceId === ''}
+			<button class="btn btn-lg btn-info" onclick={connectPlayer}>Connnect</button>
+		{:else if currentTrack === undefined}
+			<button class="btn btn-lg btn-info" onclick={startPlayer}>Start</button>
+		{/if}
 		<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
 		<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
 	</div>
