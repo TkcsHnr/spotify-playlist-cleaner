@@ -62,9 +62,10 @@
 </script>
 
 {#if data.userProfile}
-	<SpotifyWebPlayer bind:this={webPlayer} onready={startPlayer} />
+	<SpotifyWebPlayer bind:this={webPlayer} onready={() => {}} />
 	<TrackCard track={currentTrack} bind:this={trackCard} />
 	<div class="flex gap-4">
+		<button class="btn btn-lg btn-info" onclick={startPlayer}>Start</button>
 		<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
 		<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
 	</div>
