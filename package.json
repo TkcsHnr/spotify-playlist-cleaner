@@ -23,6 +23,7 @@
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^24.3.1",
+		"@types/spotify-web-playback-sdk": "^0.1.19",
 		"daisyui": "^5.1.6",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
@@ -41,5 +42,8 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"p-limit": "^7.1.1"
 	}
 }

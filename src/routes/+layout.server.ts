@@ -1,10 +1,17 @@
-import { getUserProfile } from '$lib/server/spotify';
+import { refreshAccessToken } from '$lib/server/spotifyRefresh';
+import { createSpotifyApi } from '$lib/spotify/api';
 import type { LayoutServerLoad } from './$types';
 
-export const load = (async ({ locals, cookies }) => {
-    if (locals.access_token === undefined) return { loggedIn: false };
+export const load = (async ({ cookies, fetch }) => {
+    if (cookies.get('access_token') === undefined) return;
 
-    const userProfile = await getUserProfile(locals, cookies);
+    const spotifyApi = createSpotifyApi({
+        fetcher: fetch,
+        getAccessToken: () => cookies.get('access_token')!,
+        refreshAccessToken: async () => await refreshAccessToken(cookies),
+    });
 
-    return { loggedIn: true, userProfile }
+    const userProfile = await spotifyApi.getUserProfile();
+
+    return { userProfile }
 }) satisfies LayoutServerLoad;

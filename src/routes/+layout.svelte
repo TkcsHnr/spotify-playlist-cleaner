@@ -11,14 +11,14 @@
 
 <div class="navbar bg-base-200 shadow-sm h-fit border-b border-base-content/10">
 	<div class="flex-1">
-		<a class="btn btn-ghost text-xl" href="/">playlist-cleaner</a>
+		<a class="btn btn-ghost text-xl" href="/">spotify-cleaner</a>
 	</div>
 	<div class="flex-none">
-		{#if data.loggedIn}
+		{#if data.userProfile}
 			<div class="dropdown dropdown-end block">
 				<button class="btn btn-circle p-1.5 size-12 btn-soft">
 					<img
-						src={data.userProfile?.images[0].url}
+						src={data.userProfile.images[0].url}
 						alt="User profile"
 						class="size-9 object-cover rounded-full"
 					/>
@@ -29,7 +29,7 @@
 					class="dropdown-content mt-2 bg-base-200 rounded-b-box border border-base-content/10"
 				>
 					<ul class="menu min-w-36">
-						<li class="menu-title">{data.userProfile?.display_name}</li>
+						<li class="menu-title">{data.userProfile.display_name}</li>
 						<li>
 							<form action="/api/spotify/logout" method="post" class="p-0 w-full">
 								<input
@@ -48,4 +48,6 @@
 	</div>
 </div>
 
-{@render children?.()}
+<main class="flex flex-col items-center grow justify-between sm:!justify-start py-8 px-4 gap-4">
+	{@render children?.()}
+</main>

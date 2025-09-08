@@ -3,10 +3,7 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		interface Locals {
-			access_token: string | undefined;
-			refresh_token: string | undefined;
-		}
+		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
