@@ -34,59 +34,97 @@
 		script.async = true;
 		document.body.appendChild(script);
 
-		(window as any).onSpotifyWebPlaybackSDKReady = () => {
+		(window as any).onSpotifyWebPlaybackSDKReady = async () => {
 			// @ts-expect-error
 			player = new Spotify.Player({
 				name: 'Spotify Web Playback SDK Playlist Cleaner',
 				getOAuthToken: (cb: (token: string) => void) => cb(getCookie('access_token') || ''),
 				volume: 1
 			});
+
+			const waitForReady = (): Promise<string> => {
+				return new Promise((resolve, reject) => {
+					if (!player) return reject('Player not initialized');
+
+					const readyHandler = ({ device_id }: { device_id: string }) => {
+						console.log('Ready with Device ID', device_id);
+
+						const ctx = new AudioContext();
+						if (ctx.state === 'suspended') ctx.resume();
+
+						resolve(device_id);
+					};
+
+					const errorHandler = ({ message }: { message: string }) => {
+						reject(message);
+					};
+
+					player.addListener('ready', readyHandler);
+					player.addListener('initialization_error', errorHandler);
+					player.addListener('authentication_error', errorHandler);
+					player.addListener('account_error', errorHandler);
+					player.addListener('autoplay_failed', () => {
+						console.log('Autoplay is not allowed by the browser autoplay rules');
+					});
+				});
+			};
+
+			const initPlayer = async () => {
+				if (!player) return;
+
+				const connected = await player.connect();
+				if (!connected) return;
+
+				try {
+					deviceId = await waitForReady();
+				} catch (error) {
+					console.error('Error initializing player:', error);
+				}
+			};
+
+			await initPlayer();
 		};
 	});
 
-	function waitForReady(): Promise<string> {
-		return new Promise((resolve, reject) => {
-			if (player === null) return reject('Player not initialized');
+	// function waitForReady(): Promise<string> {
+	// 	return new Promise((resolve, reject) => {
+	// 		if (player === null) return reject('Player not initialized');
 
-			const readyHandler = ({ device_id }: { device_id: string }) => {
-				console.log('Ready with Device ID', device_id);
+	// 		const readyHandler = ({ device_id }: { device_id: string }) => {
+	// 			console.log('Ready with Device ID', device_id);
 
-				const ctx = new AudioContext();
-				if (ctx.state === 'suspended') ctx.resume();
+	// 			const ctx = new AudioContext();
+	// 			if (ctx.state === 'suspended') ctx.resume();
 
-				resolve(device_id);
-			};
+	// 			resolve(device_id);
+	// 		};
 
-			const errorHandler = ({ message }: { message: string }) => {
-				reject(message);
-			};
+	// 		const errorHandler = ({ message }: { message: string }) => {
+	// 			reject(message);
+	// 		};
 
-			player.addListener('ready', readyHandler);
-			player.addListener('initialization_error', errorHandler);
-			player.addListener('authentication_error', errorHandler);
-			player.addListener('account_error', errorHandler);
-			player.addListener('autoplay_failed', () => {
-				console.log('Autoplay is not allowed by the browser autoplay rules');
-			});
-		});
-	}
+	// 		player.addListener('ready', readyHandler);
+	// 		player.addListener('initialization_error', errorHandler);
+	// 		player.addListener('authentication_error', errorHandler);
+	// 		player.addListener('account_error', errorHandler);
+	// 		player.addListener('autoplay_failed', () => {
+	// 			console.log('Autoplay is not allowed by the browser autoplay rules');
+	// 		});
+	// 	});
+	// }
 
-	async function initPlayer() {
-		if (player === null) return;
+	// async function initPlayer() {
+	// 	if (player === null) return;
 
-		const connected = await player.connect();
-		if (!connected) return;
+	// 	const connected = await player.connect();
+	// 	if (!connected) return;
 
-		try {
-			deviceId = await waitForReady();
-
-			// await spotifyApi.transferPlayback(deviceId);
-			// await spotifyApi.setVolume(100, deviceId);
-			// await playNext();
-		} catch (error) {
-			console.error('Error initializing player:', error);
-		}
-	}
+	// 	try {
+	// 		deviceId = await waitForReady();
+	// 	} catch (error) {
+	// 		console.error('Error initializing player:', error);
+	// 	}
+	// }
 
 	let trackCard = $state<TrackCard | undefined>();
 
@@ -125,9 +163,9 @@
 {#if data.userProfile}
 	<TrackCard track={currentTrack} bind:this={trackCard} />
 	<div class="flex gap-4 flex-wrap justify-center">
-		{#if deviceId === ''}
-			<button class="btn btn-lg btn-info" onclick={initPlayer}>Connect</button>
-		{:else if currentTrack === undefined}
+		<!-- {#if deviceId === ''}
+			<button class="btn btn-lg btn-info" onclick={initPlayer}>Connect</button> -->
+		{#if currentTrack === undefined}
 			<button class="btn btn-lg btn-info" onclick={playNext}>Start</button>
 		{:else}
 			<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
