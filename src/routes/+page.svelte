@@ -108,6 +108,7 @@
 		let track = randomTracks.shift();
 		if (deviceId === '' || track === undefined) return;
 		try {
+			player.activateElement();
 			spotifyApi.playTrack(deviceId, track.id);
 		} catch (error) {
 			return;
