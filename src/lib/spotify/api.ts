@@ -76,16 +76,19 @@ export function createSpotifyApi({ fetcher, getAccessToken, refreshAccessToken }
             if (!res.ok) throw new Error(`Failed to set repeat mode to ${state} on device:${device_id}`);
         },
 
-        playTrack: async (device_id: string, trackId: string) => {
+        playTrack: (device_id: string, trackId: string) => {
             console.log(`Playing track:${trackId} on device:${device_id}`)
-            const res = await spotifyFetch(`/me/player/play?device_id=${device_id}`, {
+            spotifyFetch(`/me/player/play?device_id=${device_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     uris: [`spotify:track:${trackId}`]
                 })
+            }).then(res => {
+                if (!res.ok) throw new Error(`Failed to play track:${trackId} on device:${device_id}`);
+            }).catch(err => {
+                console.error(err);
             });
-            if (!res.ok) throw new Error(`Failed to play track:${trackId} on device:${device_id}`);
         },
 
         removeTrack: async (trackId: string) => {

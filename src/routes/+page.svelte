@@ -104,16 +104,15 @@
 
 	const randomTracks: Track[] = shuffle(data.likedTracks || []);
 	let currentTrack = $state<Track | undefined>();
-	async function playNext() {
+	function playNext() {
 		let track = randomTracks.shift();
 		if (deviceId === '' || track === undefined) return;
 		try {
-			await spotifyApi.playTrack(deviceId, track.id);
+			spotifyApi.playTrack(deviceId, track.id);
 		} catch (error) {
 			return;
 		}
 		currentTrack = track;
-		await spotifyApi.setRepeatMode('track', deviceId);
 		trackCard?.restartTimer();
 	}
 
@@ -125,7 +124,7 @@
 
 	async function handleKeyup(event: KeyboardEvent) {
 		if (event.key === 'ArrowRight') {
-			await playNext();
+			playNext();
 		} else if (event.key === 'ArrowLeft') {
 			await removeCurrent();
 		}
