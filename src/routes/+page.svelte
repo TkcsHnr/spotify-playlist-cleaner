@@ -70,7 +70,7 @@
 
 	function waitForReady(): Promise<string> {
 		return new Promise((resolve, reject) => {
-			if (!player) return reject('Player not initialized');
+			if (player === null) return reject('Player not initialized');
 
 			const readyHandler = ({ device_id }: { device_id: string }) => {
 				const ctx = new AudioContext();
@@ -90,8 +90,8 @@
 		});
 	}
 
-	async function initAndPlay() {
-		if (!player) return;
+	async function initPlayer() {
+		if (player === null) return;
 
 		const connected = await player.connect();
 		if (!connected) return;
@@ -99,9 +99,9 @@
 		try {
 			deviceId = await waitForReady();
 
-			await spotifyApi.transferPlayback(deviceId);
-			await spotifyApi.setVolume(100, deviceId);
-			await playNext();
+			// await spotifyApi.transferPlayback(deviceId);
+			// await spotifyApi.setVolume(100, deviceId);
+			// await playNext();
 		} catch (error) {
 			console.error('Error initializing player:', error);
 		}
@@ -112,15 +112,14 @@
 	const randomTracks: Track[] = shuffle(data.likedTracks || []);
 	let currentTrack = $state<Track | undefined>();
 	async function playNext() {
-		currentTrack = randomTracks.shift();
-		if (deviceId === '' || currentTrack === undefined) return;
+		let track = randomTracks.shift();
+		if (deviceId === '' || track === undefined) return;
 		try {
-			await spotifyApi.playTrack(deviceId, currentTrack.id);
+			await spotifyApi.playTrack(deviceId, track.id);
 		} catch (error) {
-			await playNext();
 			return;
 		}
-
+		currentTrack = track;
 		await spotifyApi.setRepeatMode('track', deviceId);
 		trackCard?.restartTimer();
 	}
@@ -130,13 +129,25 @@
 		await spotifyApi.removeTrack(currentTrack.id);
 		playNext();
 	}
+
+	async function handleKeyup(event: KeyboardEvent) {
+		if (event.key === 'ArrowRight') {
+			await playNext();
+		} else if (event.key === 'ArrowLeft') {
+			await removeCurrent();
+		}
+	}
 </script>
+
+<svelte:window onkeyup={handleKeyup} />
 
 {#if data.userProfile}
 	<TrackCard track={currentTrack} bind:this={trackCard} />
 	<div class="flex gap-4 flex-wrap justify-center">
 		{#if deviceId === ''}
-			<button class="btn btn-lg btn-info" onclick={initAndPlay}>Start</button>
+			<button class="btn btn-lg btn-info" onclick={initPlayer}>Connect</button>
+		{:else if currentTrack === undefined}
+			<button class="btn btn-lg btn-info" onclick={playNext}>Start</button>
 		{:else}
 			<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
 			<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
