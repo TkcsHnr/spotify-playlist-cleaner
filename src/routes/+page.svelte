@@ -51,31 +51,7 @@
 			player = new Spotify.Player({
 				name: 'Spotify Web Playback SDK Playlist Cleaner',
 				getOAuthToken: (cb: (token: string) => void) => cb(getCookie('access_token') || ''),
-				volume: 0.5
-			});
-
-			player.addListener('initialization_error', ({ message }: { message: string }) =>
-				console.error('Initialization error:', message)
-			);
-			player.addListener('authentication_error', ({ message }: { message: string }) =>
-				console.error('Authentication error:', message)
-			);
-			player.addListener('account_error', ({ message }: { message: string }) =>
-				console.error('Account error:', message)
-			);
-			player.addListener('playback_error', ({ message }: { message: string }) =>
-				console.error('Playback error:', message)
-			);
-			player.addListener('autoplay_failed', () => {
-				console.log('Autoplay is not allowed by the browser autoplay rules');
-			});
-
-			player.addListener('ready', ({ device_id }: { device_id: string }) => {
-				console.log('Ready with Device ID', device_id);
-				deviceId = device_id;
-
-				const ctx = new AudioContext();
-				if (ctx.state === 'suspended') ctx.resume();
+				volume: 1
 			});
 		};
 	});
@@ -85,6 +61,8 @@
 			if (player === null) return reject('Player not initialized');
 
 			const readyHandler = ({ device_id }: { device_id: string }) => {
+				console.log('Ready with Device ID', device_id);
+
 				const ctx = new AudioContext();
 				if (ctx.state === 'suspended') ctx.resume();
 
@@ -99,6 +77,9 @@
 			player.addListener('initialization_error', errorHandler);
 			player.addListener('authentication_error', errorHandler);
 			player.addListener('account_error', errorHandler);
+			player.addListener('autoplay_failed', () => {
+				console.log('Autoplay is not allowed by the browser autoplay rules');
+			});
 		});
 	}
 
@@ -152,8 +133,6 @@
 </script>
 
 <svelte:window onkeyup={handleKeyup} />
-
-
 
 {#if data.userProfile}
 	<TrackCard track={currentTrack} bind:this={trackCard} />
