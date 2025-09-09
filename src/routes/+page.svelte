@@ -4,6 +4,18 @@
 	import TrackCard from '$lib/TrackCard.svelte';
 	import { onMount } from 'svelte';
 
+	let logs = $state<string[]>([]);
+
+	const originalConsoleLog = console.log;
+
+	console.log = function (...args) {
+		logs.push(
+			args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ')
+		);
+
+		originalConsoleLog.apply(console, args);
+	};
+
 	let { data } = $props();
 
 	function shuffle(array: any[]) {
@@ -141,6 +153,8 @@
 
 <svelte:window onkeyup={handleKeyup} />
 
+
+
 {#if data.userProfile}
 	<TrackCard track={currentTrack} bind:this={trackCard} />
 	<div class="flex gap-4 flex-wrap justify-center">
@@ -154,3 +168,9 @@
 		{/if}
 	</div>
 {/if}
+
+<div class="flex flex-col gap-2 text-sm">
+	{#each logs as log}
+		<p>{log}</p>
+	{/each}
+</div>
