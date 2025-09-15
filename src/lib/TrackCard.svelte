@@ -1,21 +1,5 @@
 <script lang="ts">
 	let { track }: { track: Track | undefined } = $props();
-
-	let elapsed = $state(0);
-	let start = 0;
-	let animationFrame: number;
-
-	export function restartTimer() {
-		cancelAnimationFrame(animationFrame);
-		start = performance.now();
-		elapsed = 0;
-		update();
-	}
-
-	function update() {
-		elapsed = performance.now() - start;
-		animationFrame = requestAnimationFrame(update);
-	}
 </script>
 
 <div
@@ -29,7 +13,9 @@
 				class="rounded-[0.5rem] aspect-square w-full bg-base-300"
 			/>
 		{:else}
-			<div class="bg-base-300 w-full aspect-square rounded-[0.5rem] grid justify-center items-center text-base-content/75">
+			<div
+				class="bg-base-300 w-full aspect-square rounded-[0.5rem] grid justify-center items-center text-base-content/75"
+			>
 				Album cover
 			</div>
 		{/if}
@@ -39,7 +25,5 @@
 		<p class="text-base-content/75">
 			{track ? track.artists.map((a) => a.name).join(', ') : 'Artists'}
 		</p>
-		<progress class="progress w-full mt-4" value={elapsed} max={track ? track.duration_ms : 0}
-		></progress>
 	</div>
 </div>

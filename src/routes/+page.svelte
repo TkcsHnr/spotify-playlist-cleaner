@@ -29,6 +29,8 @@
 	let deviceId = $state('');
 	onMount(() => {
 		if (getCookie('access_token') === undefined) return;
+		if (data.userProfile?.product !== 'premium') return;
+
 		const script = document.createElement('script');
 		script.src = 'https://sdk.scdn.co/spotify-player.js';
 		script.async = true;
@@ -86,46 +88,6 @@
 		};
 	});
 
-	// function waitForReady(): Promise<string> {
-	// 	return new Promise((resolve, reject) => {
-	// 		if (player === null) return reject('Player not initialized');
-
-	// 		const readyHandler = ({ device_id }: { device_id: string }) => {
-	// 			console.log('Ready with Device ID', device_id);
-
-	// 			const ctx = new AudioContext();
-	// 			if (ctx.state === 'suspended') ctx.resume();
-
-	// 			resolve(device_id);
-	// 		};
-
-	// 		const errorHandler = ({ message }: { message: string }) => {
-	// 			reject(message);
-	// 		};
-
-	// 		player.addListener('ready', readyHandler);
-	// 		player.addListener('initialization_error', errorHandler);
-	// 		player.addListener('authentication_error', errorHandler);
-	// 		player.addListener('account_error', errorHandler);
-	// 		player.addListener('autoplay_failed', () => {
-	// 			console.log('Autoplay is not allowed by the browser autoplay rules');
-	// 		});
-	// 	});
-	// }
-
-	// async function initPlayer() {
-	// 	if (player === null) return;
-
-	// 	const connected = await player.connect();
-	// 	if (!connected) return;
-
-	// 	try {
-	// 		deviceId = await waitForReady();
-	// 	} catch (error) {
-	// 		console.error('Error initializing player:', error);
-	// 	}
-	// }
-
 	let trackCard = $state<TrackCard | undefined>();
 
 	const randomTracks: Track[] = shuffle(data.likedTracks || []);
@@ -133,14 +95,16 @@
 	function playNext() {
 		let track = randomTracks.shift();
 		if (deviceId === '' || track === undefined) return;
-		try {
+
+		if (data.userProfile?.product === 'premium') {
 			player.activateElement();
+		}
+		try {
 			spotifyApi.playTrack(deviceId, track.id);
 		} catch (error) {
 			return;
 		}
 		currentTrack = track;
-		trackCard?.restartTimer();
 	}
 
 	async function removeCurrent() {
@@ -161,15 +125,13 @@
 <svelte:window onkeyup={handleKeyup} />
 
 {#if data.userProfile}
-	<TrackCard track={currentTrack} bind:this={trackCard} />
-	<div class="flex gap-4 flex-wrap justify-center">
-		<!-- {#if deviceId === ''}
-			<button class="btn btn-lg btn-info" onclick={initPlayer}>Connect</button> -->
-		{#if currentTrack === undefined}
-			<button class="btn btn-lg btn-info" onclick={playNext}>Start</button>
-		{:else}
+	{#if currentTrack === undefined}
+		<button class="btn size-32 btn-info text-7xl" onclick={playNext}> ♥ </button>
+	{:else}
+		<TrackCard track={currentTrack} bind:this={trackCard} />
+		<div class="flex gap-4 flex-wrap justify-center w-full">
 			<button class="btn btn-lg btn-error" onclick={removeCurrent}>Remove</button>
 			<button class="btn btn-lg btn-success" onclick={playNext}>Keep</button>
-		{/if}
-	</div>
+		</div>
+	{/if}
 {/if}

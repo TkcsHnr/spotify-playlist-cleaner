@@ -17,11 +17,13 @@
 		{#if data.userProfile}
 			<div class="dropdown dropdown-end block">
 				<div class="btn btn-circle p-1.5 size-12 btn-soft" tabindex="0" role="button">
-					<img
-						src={data.userProfile.images[0].url}
-						alt="User profile"
-						class="size-9 object-cover rounded-full"
-					/>
+					{#if data.userProfile.images?.[0]?.url}
+						<img
+							src={data.userProfile.images[0].url}
+							alt="User profile"
+							class="size-9 object-cover rounded-full"
+						/>
+					{/if}
 				</div>
 				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div

@@ -29,7 +29,7 @@ export function createSpotifyApi({ fetcher, getAccessToken, refreshAccessToken }
         getUserProfile: async () => {
             const res = await spotifyFetch("/me");
             const userProfile = (await res.json()) as SpotifyUserProfile;
-
+            
             return userProfile;
         },
 

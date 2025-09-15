@@ -13,6 +13,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     cookies.delete('code_verifier', { path: '/' })
 
     if (state === null || cookieState === undefined || state !== cookieState) {
+        console.log('state', state);
+        console.log('cookiState', cookieState);
         throw error(400, 'Invalid state: possible CSRF attack');
     }
     if (code_verifier === undefined) {
