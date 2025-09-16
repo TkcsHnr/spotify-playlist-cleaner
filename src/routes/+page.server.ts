@@ -6,8 +6,9 @@ import pLimit from 'p-limit';
 const BATCH_LIMIT = 50;
 const CONCURRENCY = 10;
 
-export const load = (async ({ cookies, fetch }) => {
-    if (cookies.get('access_token') === undefined) return;
+export const load = (async ({ cookies, fetch, parent }) => {
+    const layoutData = await parent();
+    if (layoutData.userProfile === undefined) return;
 
     const spotifyApi = createSpotifyApi({
         fetcher: fetch,
@@ -15,17 +16,15 @@ export const load = (async ({ cookies, fetch }) => {
         refreshAccessToken: async () => await refreshAccessToken(cookies),
     });
 
-    const likedTracksCount = await spotifyApi.getLikedTracksCount();
-    const batchCount = Math.ceil(likedTracksCount / BATCH_LIMIT);
-    const limit = pLimit(CONCURRENCY);
-
-    const requests = Array.from({ length: batchCount }, (_, i) => {
+    const playlistsCount = (await spotifyApi.getPlaylistsBatch(1, 0)).total;
+    let plBatchCount = Math.ceil(playlistsCount / BATCH_LIMIT);
+    let plLmit = pLimit(CONCURRENCY);
+    const plRequests = Array.from({ length: plBatchCount }, (_, i) => {
         const offset = i * BATCH_LIMIT;
-        return limit(() => spotifyApi.getLikedTracks(BATCH_LIMIT, offset));
+        return plLmit(() => spotifyApi.getPlaylistsBatch(BATCH_LIMIT, offset).then(b => b.items));
     });
+    const plResults = await Promise.all(plRequests);
+    const playlists = plResults.flat().filter(p => p.owner.id === layoutData.userProfile.id);
 
-    const results = await Promise.all(requests);
-    const likedTracks = results.flat();
-
-    return { likedTracksCount, likedTracks };
+    return { playlists };
 }) satisfies PageServerLoad;

@@ -1,8 +1,14 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { onMount } from 'svelte';
+	import { initPlayer } from '$lib/spotify/spotifyPlayer';
 
 	let { children, data } = $props();
+
+	onMount(async () => {
+		await initPlayer();
+	});
 </script>
 
 <svelte:head>

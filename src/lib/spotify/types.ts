@@ -7,19 +7,24 @@ interface SpotifyTokenResponse {
     refresh_token?: string;
 }
 
+// partial image object from spotify web api
+interface SpotifyImage {
+    url: string;
+}
+
 // partial user profile from spotify web api
 interface SpotifyUserProfile {
     country: string;
     display_name: string;
     id: string;
-    images: { url: string }[];
+    images: SpotifyImage[];
     product: string;
 }
 
 // partial album object from spotify web api
 interface Album {
     id: string;
-    images: { url: string }[];
+    images: SpotifyImage[];
     name: string;
 }
 
@@ -31,6 +36,29 @@ interface Track {
     id: string;
     name: string;
 };
+
+// partial tracks object from spotify web api
+interface TracksBatch {
+    total: number;
+    items: { track: Track; }[]
+}
+
+// partial playlist tracks objects from spotify web api
+interface Playlist {
+    name: string;
+    owner: {
+        id: string;
+    }
+    description: string | null;
+    id: string;
+    images: SpotifyImage[];
+    tracks: TracksBatch;
+}
+
+interface PlaylistsBatch {
+    total: number;
+    items: Playlist[];                                                                                                                                                                                                                                                                                                                                                                                                                          
+}
 
 interface SpotifyApiOptions {
     fetcher: typeof fetch;
