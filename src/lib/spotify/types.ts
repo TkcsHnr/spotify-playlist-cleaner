@@ -32,8 +32,8 @@ interface Album {
 interface Track {
     album: Album;
     artists: { name: string }[];
-    duration_ms: number;
     id: string;
+    uri: string;
     name: string;
 };
 

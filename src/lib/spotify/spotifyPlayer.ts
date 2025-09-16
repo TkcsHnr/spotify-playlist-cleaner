@@ -15,8 +15,6 @@ export function getDeviceId() {
 export async function activatePlayer() {
     if (player) {
         await player.activateElement();
-        // const ctx = new AudioContext();
-        // if (ctx.state === 'suspended') ctx.resume();
     }
 }
 

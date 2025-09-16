@@ -6,7 +6,6 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { playlistButtonPress } from '$lib/stores';
 	import type { PageProps } from './$types';
-	import { get } from 'svelte/store';
 
 	let { data }: PageProps = $props();
 
@@ -20,15 +19,14 @@
 		}
 	});
 
-	let allTracks: Track[] = [];
+	let shuffledTracks: Track[] = [];
 	let currentTrack = $state<Track | undefined>();
 
 	async function startFetching() {
 		const generator = spotifyApi.tracksGenerator(data.playlist_id);
 
 		for await (const batch of generator) {
-			console.log('Received batch of tracks');
-			allTracks = shuffle([...allTracks, ...batch]);
+			shuffledTracks = shuffle([...shuffledTracks, ...batch]);
 			if (currentTrack === undefined && playbackEnabled) {
 				playNext();
 			}
@@ -36,27 +34,19 @@
 	}
 
 	async function playNext() {
-		let track = allTracks.shift();
+		let track = shuffledTracks.shift();
 		if (track === undefined) return;
 
-		if (data.userProfile?.product === 'premium') {
-			await initPlayer();
-			await activatePlayer();
-		}
-		let deviceId = getDeviceId();
-		if (deviceId !== '') {
-			try {
-				spotifyApi.playTrack(deviceId, track.id);
-			} catch (error) {
-				return;
-			}
-		}
 		currentTrack = track;
+		if (data.premiumUser === false) return;
+        
+		await activatePlayer();
+		spotifyApi.playTrack(getDeviceId(), track);
 	}
 
 	async function removeCurrent() {
 		if (currentTrack === undefined) return;
-		await spotifyApi.removeTrack(currentTrack.id);
+		await spotifyApi.removeTrack(currentTrack);
 		playNext();
 	}
 

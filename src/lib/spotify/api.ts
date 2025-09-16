@@ -94,7 +94,6 @@ export function createSpotifyApi({ fetcher, getAccessToken, refreshAccessToken }
         if (!res.ok) throw new Error(`Failed to transfer playback to device:${device_id}`);
     };
 
-
     async function setRepeatMode(state: "track" | "context" | "off", device_id: string) {
         console.log(`Setting repeat mode to ${state} on device:${device_id}`)
         const res = await spotifyFetch(`/me/player/repeat?state=${state}&device_id=${device_id}`, {
@@ -103,27 +102,27 @@ export function createSpotifyApi({ fetcher, getAccessToken, refreshAccessToken }
         if (!res.ok) throw new Error(`Failed to set repeat mode to ${state} on device:${device_id}`);
     };
 
-    function playTrack(device_id: string, trackId: string) {
-        console.log(`Playing track:${trackId} on device:${device_id}`)
+    function playTrack(device_id: string, track: Track) {
+        console.log(`Playing ${track.name} on device:${device_id}`)
         spotifyFetch(`/me/player/play?device_id=${device_id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                uris: [`spotify:track:${trackId}`]
+                uris: [track.uri]
             })
         }).then(res => {
-            if (!res.ok) throw new Error(`Failed to play track:${trackId} on device:${device_id}`);
+            if (!res.ok) throw new Error(`Failed to play ${track.name} on device:${device_id}`);
         }).catch(err => {
             console.error(err);
         });
     };
 
-    async function removeTrack(trackId: string) {
-        console.log(`Removing track:${trackId}`);
-        const res = await spotifyFetch(`/me/tracks?ids=${trackId}`, {
+    async function removeTrack(track: Track) {
+        console.log(`Removing ${track.name}`);
+        const res = await spotifyFetch(`/me/tracks?ids=${track.id}`, {
             method: 'DELETE'
         })
-        if (!res.ok) throw new Error(`Failed to remove track:${trackId}`);
+        if (!res.ok) throw new Error(`Failed to remove ${track.name}`);
     };
 
     return {

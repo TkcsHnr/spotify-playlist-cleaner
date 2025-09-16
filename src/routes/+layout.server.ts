@@ -12,6 +12,7 @@ export const load = (async ({ cookies, fetch }) => {
     });
 
     const userProfile = await spotifyApi.getUserProfile();
+    const premiumUser = userProfile.product === "premium";
 
-    return { userProfile }
+    return { userProfile, premiumUser }
 }) satisfies LayoutServerLoad;

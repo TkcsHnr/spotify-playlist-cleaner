@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { activatePlayer, getDeviceId, initPlayer } from '$lib/spotify/spotifyPlayer.js';
+	import { activatePlayer, initPlayer } from '$lib/spotify/spotifyPlayer.js';
 	import { goto } from '$app/navigation';
 	import { playlistButtonPress } from '$lib/stores.js';
 
 	let { data } = $props();
 
 	async function startPlaylist(playlist_id: string) {
-		if (data.userProfile?.product === 'premium') {
+		if (data.premiumUser) {
 			await initPlayer();
 			await activatePlayer();
 		}
