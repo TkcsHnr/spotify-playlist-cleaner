@@ -108,7 +108,8 @@ export function createSpotifyApi({ fetcher, getAccessToken, refreshAccessToken }
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                uris: [track.uri]
+                uris: [track.uri],
+                position_ms: 30000
             })
         }).then(res => {
             if (!res.ok) throw new Error(`Failed to play ${track.name} on device:${device_id}`);
