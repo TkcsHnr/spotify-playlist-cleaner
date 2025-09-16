@@ -3,7 +3,6 @@ import { getCookie } from "$lib/utils";
 // @ts-expect-error
 let player: Spotify.Player | null = null;
 let deviceId: string = '';
-let sdkLoaded = false;
 
 export function getPlayer() {
     return player;
@@ -32,18 +31,16 @@ export async function stopPlayer() {
 }
 
 export async function initPlayer() {
-    if (player) return player;
+    if (player) {
+        console.log("Player already initialized");
+        return player;
+    };
 
-    const token = getCookie('access_token');
-    if (!token) return;
-
-    if (!sdkLoaded) {
-        const script = document.createElement('script');
-        script.src = 'https://sdk.scdn.co/spotify-player.js';
-        script.async = true;
-        document.body.appendChild(script);
-        sdkLoaded = true;
-    }
+    console.log("Initializing web playback sdk");
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.async = true;
+    document.body.appendChild(script);
 
     return new Promise((resolve) => {
         (window as any).onSpotifyWebPlaybackSDKReady = async () => {

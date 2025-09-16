@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { activatePlayer, getDeviceId, initPlayer } from '$lib/spotify/spotifyPlayer.js';
 	import { goto } from '$app/navigation';
+	import { playlistButtonPress } from '$lib/stores.js';
 
 	let { data } = $props();
 
@@ -10,6 +11,7 @@
 			await activatePlayer();
 		}
 
+		playlistButtonPress.set(true);
 		goto(`/${playlist_id}`);
 	}
 </script>

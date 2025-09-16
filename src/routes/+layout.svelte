@@ -7,7 +7,9 @@
 	let { children, data } = $props();
 
 	onMount(async () => {
-		await initPlayer();
+		if (data.userProfile?.product === 'premium') {
+			await initPlayer();
+		}
 	});
 </script>
 
