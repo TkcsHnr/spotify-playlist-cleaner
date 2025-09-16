@@ -27,7 +27,7 @@
 
 		for await (const batch of generator) {
 			shuffledTracks = shuffle([...shuffledTracks, ...batch]);
-			if (currentTrack === undefined && playbackEnabled) {
+			if (currentTrack === undefined) {
 				playNext();
 			}
 		}
@@ -81,7 +81,7 @@
 
 <svelte:window onkeyup={handleKeyup} />
 
-{#if playbackEnabled == false}
+{#if playbackEnabled == false && data.premiumUser}
 	<button class="btn btn-success btn-lg" onclick={enablePlayback}>Enable audio playback</button>
 {:else if currentTrack !== undefined}
 	<TrackCard track={currentTrack} />
